@@ -1,7 +1,12 @@
 import os
 
+import librosa
+
 PATH = os.path.dirname(os.path.realpath(__file__))
 LIBRISPEECH_SAMPLING_RATE = 16000
+HOP_LENGTH = 512 #the default spacing between frames
+N_FFT = 255 #number of samples
+
 
 from tqdm import tqdm
 import torch.utils.data
@@ -12,8 +17,8 @@ import json
 import os
 
 
-sex_to_label = {'M': False, 'F': True}
-label_to_sex = {False: 'M', True: 'F'}
+sex_to_label = {'M': 0, 'F': 1}
+label_to_sex = {0: 'M', 1: 'F'}
 
 
 class LibriSpeechDataset(torch.utils.data.Dataset):
@@ -135,15 +140,52 @@ class LibriSpeechDataset(torch.utils.data.Dataset):
             json.dump(self.datasetid_to_sex, f)
 
     def __getitem__(self, index):
-        instance, samplerate = sf.read(self.datasetid_to_filepath[index])
+        features = []  # list to save features
+        labels = []  # list to save labels
+
+        file_path = self.datasetid_to_filepath[index]
+        librosa_audio_data, sample_rate= librosa.load(file_path, sr=LIBRISPEECH_SAMPLING_RATE)
+
+         # = sf.read(file_path)
         # Choose a random sample of the file
         if self.stochastic:
-            fragment_start_index = np.random.randint(0, len(instance)-self.fragment_length)
+            fragment_start_index = np.random.randint(0, len(librosa_audio_data)-self.fragment_length)
         else:
             fragment_start_index = 0
-        instance = instance[fragment_start_index:fragment_start_index+self.fragment_length]
+
+        # cut the file to wanted length
+        # y_cut = y[round(tstart * sr, ndigits=None) //TODO
+        #           :round(tend * sr, ndigits=None)]
+        librosa_audio_data = librosa_audio_data[fragment_start_index:fragment_start_index+self.fragment_length]
+        # data = librosa.feature.mfcc(instance,n_fft=N_FFT , hop_length=HOP_LENGTH, n_mfcc=128)
+        mfccs_features=np.array(librosa.feature.mfcc(librosa_audio_data, sr=sample_rate, n_mfcc=128))
+        # mfccs_scaled_features=np.mean(mfccs_features.T,axis=0)
         sex = self.datasetid_to_sex[index]
-        return instance, sex_to_label[sex]
+        return mfccs_features, sex_to_label[sex]
 
     def __len__(self):
         return self.n_files
+
+# def get_features(df_in):
+#     features=[] #list to save features
+#     labels=[] #list to save labels
+#     for index in range(0,len(df_in)):
+#       #get the filename
+#       filename = df_in.iloc[index]['recording_id']+str('.flac')
+#       #cut to start of signal
+#       tstart = df_in.iloc[index]['t_min']
+#       #cut to end of signal
+#       tend = df_in.iloc[index]['t_max']
+#       #save labels
+#       species_id = df_in.iloc[index]['species_id']
+#       #load the file
+#       y, sr = librosa.load('train/'+filename,sr=28000)
+#       #cut the file from tstart to tend
+#       y_cut = y[round(tstart*sr,ndigits=None)
+#          :round(tend*sr, ndigits= None)]
+#       data = np.array([padding(librosa.feature.mfcc(y_cut,
+#          n_fft=n_fft,hop_length=hop_length,n_mfcc=128),1,400)])
+#       features.append(data)
+#       labels.append(species_id)
+#     output=np.concatenate(features,axis=0)
+#     return(np.array(output), labels)
