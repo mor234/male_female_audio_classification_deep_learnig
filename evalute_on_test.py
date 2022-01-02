@@ -2,11 +2,6 @@ import numpy as np
 from tensorflow import keras
 
 
-def prep():
-    ##############
-
-    training_set = ['train-clean-100', 'train-clean-360']  # , 'dev-clean']
-    # validation_set = 'dev-clean'
 
 
 if __name__ == '__main__':
@@ -23,8 +18,3 @@ if __name__ == '__main__':
     results = model.evaluate(x_test, y_test, batch_size=128)
     print("test loss, test acc:", results)
 
-    # Generate predictions (probabilities -- the output of the last layer)
-    # on new data using `predict`
-    print("Generate predictions for 3 samples")
-    predictions = model.predict(x_test[:3])
-    print("predictions shape:", predictions.shape)

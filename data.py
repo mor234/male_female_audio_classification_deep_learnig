@@ -4,9 +4,8 @@ import librosa
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 LIBRISPEECH_SAMPLING_RATE = 16000
-HOP_LENGTH = 512 #the default spacing between frames
-N_FFT = 255 #number of samples
-
+HOP_LENGTH = 512  # the default spacing between frames
+N_FFT = 255  # number of samples
 
 from tqdm import tqdm
 import torch.utils.data
@@ -15,7 +14,6 @@ import pandas as pd
 import numpy as np
 import json
 import os
-
 
 sex_to_label = {'M': 0, 'F': 1}
 label_to_sex = {0: 'M', 1: 'F'}
@@ -53,7 +51,7 @@ class LibriSpeechDataset(torch.utils.data.Dataset):
         cached_id_to_sex_location = PATH + cached_id_to_sex_location
 
         cached_dictionaries_exist = os.path.exists(cached_id_to_filepath_location) \
-            and os.path.exists(cached_id_to_sex_location)
+                                    and os.path.exists(cached_id_to_sex_location)
         if cache and cached_dictionaries_exist:
             print('Cached indexes found.')
             with open(cached_id_to_filepath_location) as f:
@@ -67,14 +65,15 @@ class LibriSpeechDataset(torch.utils.data.Dataset):
             self.datasetid_to_filepath = {int(k): v for k, v in self.datasetid_to_filepath.items()}
             self.datasetid_to_sex = {int(k): v for k, v in self.datasetid_to_sex.items()}
 
-            assert len(self.datasetid_to_filepath) == len(self.datasetid_to_sex), 'Cached indexes are different lengths!'
+            assert len(self.datasetid_to_filepath) == len(
+                self.datasetid_to_sex), 'Cached indexes are different lengths!'
 
             self.n_files = len(self.datasetid_to_filepath)
             print('{} usable files found.'.format(self.n_files))
 
             return
 
-        df = pd.read_csv(PATH+'/data/LibriSpeech/SPEAKERS.TXT', skiprows=11, delimiter='|', error_bad_lines=False)
+        df = pd.read_csv(PATH + '/data/LibriSpeech/SPEAKERS.TXT', skiprows=11, delimiter='|', error_bad_lines=False)
         df.columns = [col.strip().replace(';', '').lower() for col in df.columns]
         df = df.assign(
             sex=df['sex'].apply(lambda x: x.strip()),
@@ -100,11 +99,11 @@ class LibriSpeechDataset(torch.utils.data.Dataset):
             print('Indexing {}...'.format(s))
             # Quick first pass to find total for tqdm bar
             subset_len = 0
-            for root, folders, files in os.walk(PATH+'/data/LibriSpeech/{}/'.format(s)):
+            for root, folders, files in os.walk(PATH + '/data/LibriSpeech/{}/'.format(s)):
                 subset_len += len([f for f in files if f.endswith('.flac')])
 
             progress_bar = tqdm(total=subset_len)
-            for root, folders, files in os.walk(os.path.join(PATH,"data","LibriSpeech",s)):
+            for root, folders, files in os.walk(os.path.join(PATH, "data", "LibriSpeech", s)):
                 if len(files) == 0:
                     continue
                 print(root)
@@ -144,22 +143,18 @@ class LibriSpeechDataset(torch.utils.data.Dataset):
         labels = []  # list to save labels
 
         file_path = self.datasetid_to_filepath[index]
-        librosa_audio_data, sample_rate= librosa.load(file_path, sr=LIBRISPEECH_SAMPLING_RATE)
+        librosa_audio_data, sample_rate = librosa.load(file_path, sr=LIBRISPEECH_SAMPLING_RATE)
 
-         # = sf.read(file_path)
         # Choose a random sample of the file
         if self.stochastic:
-            fragment_start_index = np.random.randint(0, len(librosa_audio_data)-self.fragment_length)
+            fragment_start_index = np.random.randint(0, len(librosa_audio_data) - self.fragment_length)
         else:
             fragment_start_index = 0
 
-        # cut the file to wanted length
-        # y_cut = y[round(tstart * sr, ndigits=None) //TODO
-        #           :round(tend * sr, ndigits=None)]
-        librosa_audio_data = librosa_audio_data[fragment_start_index:fragment_start_index+self.fragment_length]
-        # data = librosa.feature.mfcc(instance,n_fft=N_FFT , hop_length=HOP_LENGTH, n_mfcc=128)
-        mfccs_features=np.array(librosa.feature.mfcc(librosa_audio_data, sr=sample_rate, n_mfcc=128))
-        mfccs_scaled_features=np.mean(mfccs_features.T,axis=0)
+        # cut the data for wanted length
+        librosa_audio_data = librosa_audio_data[fragment_start_index:fragment_start_index + self.fragment_length]
+        mfccs_features = np.array(librosa.feature.mfcc(librosa_audio_data, sr=sample_rate, n_mfcc=128))
+        mfccs_scaled_features = np.mean(mfccs_features.T, axis=0)
         sex = self.datasetid_to_sex[index]
         return mfccs_scaled_features, sex_to_label[sex]
 

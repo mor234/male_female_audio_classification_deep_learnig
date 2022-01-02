@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     # load kept model. this is final model
     # model = keras.models.load_model("san7")
-    # model.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     history = model.fit(X_train, y_train, epochs=25
                         , batch_size=72,
                         validation_data=(X_val, y_val), shuffle=False)
