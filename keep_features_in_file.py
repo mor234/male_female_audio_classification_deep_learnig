@@ -12,20 +12,18 @@ def prep():
     n_seconds = 3
     batchsize = 20000
 
-    training_set = ['train-clean-100', 'train-clean-360']  # , 'dev-clean']
-    # validation_set = 'dev-clean'
+    training_set = ['train-clean-100', 'train-clean-360']  # ,
+    test_set = ['dev-clean', 'test-clean']
 
     ###################
     # Create datasets #
     ###################
     trainset = LibriSpeechDataset(training_set, int(LIBRISPEECH_SAMPLING_RATE * n_seconds))
-    # testset = LibriSpeechDataset(validation_set, int(LIBRISPEECH_SAMPLING_RATE * n_seconds), stochastic=False)
+    testset = LibriSpeechDataset(test_set, int(LIBRISPEECH_SAMPLING_RATE * n_seconds), stochastic=False)
     trainloader = DataLoader(trainset, batch_size=batchsize, num_workers=4, shuffle=True, drop_last=True)
-    # trainloader = DataLoader(trainset, num_workers=4, shuffle=True, drop_last=True)
-    # testloader = DataLoader(testset, batch_size=batchsize, num_workers=4, drop_last=True)
-    # testloader = DataLoader(testset, num_workers=4, drop_last=True)
+    testloader = DataLoader(testset, batch_size=batchsize, num_workers=4, drop_last=True)
 
-    return trainloader  # , testloader
+    return trainloader  # ,trainloader
 
 
 def get_features(trainloader):
@@ -45,12 +43,6 @@ def get_features(trainloader):
     return np.array(output), labels
 
 
-# print(x, y)
-# print (x[0].shape)
-#
-# break
-
-
 if __name__ == '__main__':
     data_loader = prep()
     X, y = get_features(data_loader)
@@ -59,25 +51,31 @@ if __name__ == '__main__':
     # Split twice to get the validation set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=123, stratify=y)
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=123)
-    print("before:", X_train, X_val)
+    print("before:", X, y)
 
     # normelize
     norm = MinMaxScaler().fit(X_train)
     X_train = norm.transform(X_train)
     X_val = norm.transform(X_val)
+    X_test=norm.transform(X_test)
 
     print("after:", X_train)  # ,X_val)
 
     # Print the shapes
-    print(X_train.shape, X_test.shape, X_val.shape, len(y_train), len(y_test), len(y_val))
+    # print(X_train.shape, X_test.shape, X_val.shape, len(y_train), len(y_test), len(y_val))
 
     # save to csv file
-    np.savetxt("x_train.csv", X_train)
-    np.savetxt("y_train.csv", y_train)
-    np.savetxt("x_val.csv", X_val)
-    np.savetxt("y_val.csv", y_val)
+    np.savetxt("x_train1.csv", X_train)
+    np.savetxt("y_train1.csv", y_train)
+    np.savetxt("x_test.csv", X_test)
+    np.savetxt("y_test.csv", y_test)
+    np.savetxt("x_val1.csv", X_val)
+    np.savetxt("y_val1.csv", y_val)
 
-    loaded_arr = np.loadtxt("x_train.csv")
-    if (loaded_arr == X_train).all():
-        print("Yes, both the arrays are same")
+    loaded_arr0 = np.loadtxt("x_test.csv")
+    loaded_arr1 = np.loadtxt("y_test.csv")
 
+    if (y_test == loaded_arr1).all():
+        print("1: Yes, both the arrays are same")
+    if (loaded_arr0 == X_test).all():
+        print("2: Yes, both the arrays are same")

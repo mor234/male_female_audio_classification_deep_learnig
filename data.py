@@ -159,9 +159,9 @@ class LibriSpeechDataset(torch.utils.data.Dataset):
         librosa_audio_data = librosa_audio_data[fragment_start_index:fragment_start_index+self.fragment_length]
         # data = librosa.feature.mfcc(instance,n_fft=N_FFT , hop_length=HOP_LENGTH, n_mfcc=128)
         mfccs_features=np.array(librosa.feature.mfcc(librosa_audio_data, sr=sample_rate, n_mfcc=128))
-        # mfccs_scaled_features=np.mean(mfccs_features.T,axis=0)
+        mfccs_scaled_features=np.mean(mfccs_features.T,axis=0)
         sex = self.datasetid_to_sex[index]
-        return mfccs_features, sex_to_label[sex]
+        return mfccs_scaled_features, sex_to_label[sex]
 
     def __len__(self):
         return self.n_files
