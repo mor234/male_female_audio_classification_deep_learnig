@@ -3,7 +3,7 @@ from tensorflow import keras
 
 
 
-
+### load the trained model and use it ###
 if __name__ == '__main__':
     x_test = np.loadtxt("x_test.csv")
     y_test = np.loadtxt("y_test.csv")

@@ -2,6 +2,7 @@ import numpy as np
 from keras.layers import LSTM, Dense
 from tensorflow import keras
 
+### create and train the audio recognition for genders deep learning model ###
 
 if __name__ == '__main__':
     # load features and labels

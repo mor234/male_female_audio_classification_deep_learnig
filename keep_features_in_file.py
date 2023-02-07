@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 from data import LibriSpeechDataset, LIBRISPEECH_SAMPLING_RATE
 
-
+### extract audio features from audio files, and keep them in csv files to be used for training the model ###
 def prep():
     ##############
     n_seconds = 3
@@ -19,9 +19,9 @@ def prep():
     # Create datasets #
     ###################
     trainset = LibriSpeechDataset(training_set, int(LIBRISPEECH_SAMPLING_RATE * n_seconds))
-    testset = LibriSpeechDataset(test_set, int(LIBRISPEECH_SAMPLING_RATE * n_seconds), stochastic=False)
+    #testset = LibriSpeechDataset(test_set, int(LIBRISPEECH_SAMPLING_RATE * n_seconds), stochastic=False)
     trainloader = DataLoader(trainset, batch_size=batchsize, num_workers=4, shuffle=True, drop_last=True)
-    testloader = DataLoader(testset, batch_size=batchsize, num_workers=4, drop_last=True)
+    #testloader = DataLoader(testset, batch_size=batchsize, num_workers=4, drop_last=True)
 
     return trainloader  # ,trainloader
 
